@@ -1,6 +1,7 @@
 import { useReactFlow } from '@xyflow/react';
 import { X, Plus, User } from 'lucide-react';
 import { OrgNodeType, OrgNodeData } from './OrgNode';
+import { useProjects } from './ProjectContext';
 
 interface SidePanelProps {
   selectedNodeId: string | null;
@@ -11,6 +12,7 @@ interface SidePanelProps {
 
 export default function SidePanel({ selectedNodeId, onClose, onSelectNode, onAddSubordinate }: SidePanelProps) {
   const { getNodes, getEdges, setNodes } = useReactFlow();
+  const { projects } = useProjects();
 
   if (!selectedNodeId) return null;
 
@@ -94,6 +96,22 @@ export default function SidePanel({ selectedNodeId, onClose, onSelectNode, onAdd
             onChange={(e) => updateData('notes', e.target.value)}
             placeholder="Additional details..."
           />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Project</label>
+          <select
+            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+            value={selectedNode.data.projectId || ''}
+            onChange={(e) => updateData('projectId', e.target.value)}
+          >
+            <option value="">No Project</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="mt-2 pt-4 border-t border-gray-100">

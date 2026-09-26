@@ -22,6 +22,9 @@ import { toPng } from 'html-to-image';
 import OrgNode from './OrgNode';
 import Toolbar from './Toolbar';
 import SidePanel from './SidePanel';
+import ProjectsModal from './ProjectsModal';
+import Legend from './Legend';
+import { ProjectProvider } from './ProjectContext';
 import { getLayoutedElements } from '../lib/layout';
 
 const nodeTypes = {
@@ -36,6 +39,7 @@ function Flow() {
   const { fitView } = useReactFlow();
   const [mounted, setMounted] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [showProjectsModal, setShowProjectsModal] = useState(false);
 
   useOnSelectionChange({
     onChange: ({ nodes }) => {
@@ -208,6 +212,7 @@ function Flow() {
             onAutoLayout={onAutoLayout}
             onExport={onExport}
             onClear={onClear}
+            onManageProjects={() => setShowProjectsModal(true)}
           />
         </Panel>
       </ReactFlow>
@@ -217,6 +222,8 @@ function Flow() {
         onSelectNode={onSelectNode}
         onAddSubordinate={onAddSubordinate}
       />
+      <Legend />
+      {showProjectsModal && <ProjectsModal onClose={() => setShowProjectsModal(false)} />}
     </div>
   );
 }
@@ -224,9 +231,11 @@ function Flow() {
 export default function OrgChartCanvas() {
   return (
     <div className="w-full h-screen font-sans">
-      <ReactFlowProvider>
-        <Flow />
-      </ReactFlowProvider>
+      <ProjectProvider>
+        <ReactFlowProvider>
+          <Flow />
+        </ReactFlowProvider>
+      </ProjectProvider>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { Handle, Position, NodeProps, useReactFlow, Node } from '@xyflow/react';
+import { useProjects } from './ProjectContext';
 
 export type OrgNodeData = {
   name: string;
@@ -6,6 +7,7 @@ export type OrgNodeData = {
   email?: string;
   phone?: string;
   notes?: string;
+  projectId?: string;
 };
 
 export type OrgNodeType = Node<OrgNodeData, 'orgNode'>;
@@ -40,12 +42,26 @@ export default function OrgNode({ id, data, selected }: NodeProps<OrgNodeType>) 
     setEdges((eds) => eds.filter((edge) => edge.source !== id && edge.target !== id));
   };
 
+  const { projects } = useProjects();
+  const project = projects.find(p => p.id === data.projectId);
+  const borderColor = project ? project.color : '';
+
   return (
     <div
+      style={project ? { borderColor } : {}}
       className={`relative flex flex-col bg-white border-2 rounded-xl shadow-sm w-48 ${
-        selected ? 'border-blue-500 shadow-md' : 'border-gray-200 hover:border-gray-300'
-      } transition-all duration-200 group`}
+        selected ? 'shadow-md ring-2 ring-blue-500/20' : 'hover:shadow-md'
+      } ${!project ? (selected ? 'border-blue-500' : 'border-gray-200 hover:border-gray-300') : ''} transition-all duration-200 group`}
     >
+      {project && (
+        <div 
+          className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white shadow-sm whitespace-nowrap z-20" 
+          style={{ backgroundColor: project.color }}
+        >
+          {project.name}
+        </div>
+      )}
+
       <Handle type="target" position={Position.Top} className="w-3 h-3 !bg-gray-400" />
 
       <div className="p-3 flex flex-col gap-1">
