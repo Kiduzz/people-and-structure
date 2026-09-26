@@ -48,31 +48,31 @@ export default function OrgNode({ id, data, selected }: NodeProps<OrgNodeType>) 
 
   return (
     <div
-      style={project ? { borderColor } : {}}
-      className={`relative flex flex-col bg-white border-2 rounded-xl shadow-sm w-48 ${
-        selected ? 'shadow-md ring-2 ring-blue-500/20' : 'hover:shadow-md'
-      } ${!project ? (selected ? 'border-blue-500' : 'border-gray-200 hover:border-gray-300') : ''} transition-all duration-200 group`}
+      style={project ? { borderColor: project.color } : {}}
+      className={`relative flex flex-col bg-white/95 backdrop-blur-md border border-gray-200/80 rounded-2xl w-56 transition-all duration-300 group ${
+        selected ? 'shadow-[0_8px_30px_rgb(59,130,246,0.3)] ring-4 ring-blue-500/20 border-blue-500 scale-105 z-50' : 'shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:border-gray-300'
+      } ${project ? 'border-t-[6px]' : 'border-t-[6px] border-t-gray-100'}`}
     >
       {project && (
         <div 
-          className="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white shadow-sm whitespace-nowrap z-20" 
+          className="absolute -top-[14px] left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[10px] font-extrabold text-white shadow-md whitespace-nowrap z-20 tracking-wider uppercase border-2 border-white" 
           style={{ backgroundColor: project.color }}
         >
           {project.name}
         </div>
       )}
 
-      <Handle type="target" position={Position.Top} className="w-6 h-6 !bg-blue-500 border-4 border-white shadow-sm hover:!bg-blue-600 transition-colors cursor-crosshair" />
+      <Handle type="target" position={Position.Top} className="w-6 h-6 !bg-blue-500 border-4 border-white shadow-md hover:!bg-blue-600 transition-colors cursor-crosshair hover:scale-125" />
 
-      <div className="p-3 flex flex-col gap-1">
+      <div className="p-4 flex flex-col gap-1.5">
         <input
-          className="nodrag text-sm font-semibold text-gray-800 outline-none w-full bg-transparent placeholder-gray-400"
+          className="nodrag text-base font-bold text-gray-800 outline-none w-full bg-transparent placeholder-gray-300 truncate"
           value={data.name}
           onChange={onChangeName}
           placeholder="Name"
         />
         <input
-          className="nodrag text-xs text-gray-500 outline-none w-full bg-transparent placeholder-gray-300"
+          className="nodrag text-xs font-semibold text-gray-500 outline-none w-full bg-transparent placeholder-gray-300 truncate"
           value={data.title}
           onChange={onChangeTitle}
           placeholder="Role/Title"

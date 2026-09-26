@@ -12,33 +12,33 @@ interface ToolbarProps {
 
 export default function Toolbar({ onAddNode, onAutoLayout, onExportPng, onExportData, onImportData, onClear, onManageProjects }: ToolbarProps) {
   return (
-    <div className="bg-white px-4 py-2 rounded-full shadow-lg border border-gray-200 flex items-center gap-2 pointer-events-auto">
-      <button onClick={onAddNode} className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-md text-sm font-medium transition-colors">
-        <Plus size={16} /> Add Node
+    <div className="bg-white/80 backdrop-blur-xl px-2 py-1.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-200/60 flex items-center gap-1 pointer-events-auto transition-all">
+      <button onClick={onAddNode} className="flex items-center gap-2 px-4 py-2 hover:bg-white hover:shadow-sm rounded-full text-sm font-semibold text-gray-700 transition-all border border-transparent hover:border-gray-200/60">
+        <Plus size={16} className="text-blue-600" /> Add Node
       </button>
-      <div className="w-px h-6 bg-gray-200 mx-1"></div>
-      <button onClick={onManageProjects} className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-md text-sm font-medium transition-colors">
-        <FolderKanban size={16} /> Projects
+      <div className="w-px h-5 bg-gray-200/80 mx-1"></div>
+      <button onClick={onManageProjects} className="flex items-center gap-2 px-4 py-2 hover:bg-white hover:shadow-sm rounded-full text-sm font-semibold text-gray-700 transition-all border border-transparent hover:border-gray-200/60">
+        <FolderKanban size={16} className="text-purple-500" /> Projects
       </button>
-      <div className="w-px h-6 bg-gray-200 mx-1"></div>
-      <button onClick={onAutoLayout} className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-md text-sm font-medium transition-colors">
-        <LayoutDashboard size={16} /> Auto Layout
+      <div className="w-px h-5 bg-gray-200/80 mx-1"></div>
+      <button onClick={onAutoLayout} className="flex items-center gap-2 px-4 py-2 hover:bg-white hover:shadow-sm rounded-full text-sm font-semibold text-gray-700 transition-all border border-transparent hover:border-gray-200/60">
+        <LayoutDashboard size={16} className="text-indigo-500" /> Auto Layout
       </button>
-      <div className="w-px h-6 bg-gray-200 mx-1"></div>
+      <div className="w-px h-5 bg-gray-200/80 mx-1"></div>
       
-      <label className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-md text-sm font-medium transition-colors cursor-pointer text-gray-700">
-        <Upload size={16} /> Load Data
+      <label className="flex items-center gap-2 px-4 py-2 hover:bg-white hover:shadow-sm rounded-full text-sm font-semibold text-gray-700 transition-all cursor-pointer border border-transparent hover:border-gray-200/60">
+        <Upload size={16} className="text-teal-500" /> Load Data
         <input type="file" accept=".json" className="hidden" onChange={onImportData} />
       </label>
-      <button onClick={onExportData} className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-md text-sm font-medium transition-colors text-gray-700">
-        <FileJson size={16} /> Save Data
+      <button onClick={onExportData} className="flex items-center gap-2 px-4 py-2 hover:bg-white hover:shadow-sm rounded-full text-sm font-semibold text-gray-700 transition-all border border-transparent hover:border-gray-200/60">
+        <FileJson size={16} className="text-amber-500" /> Save Data
       </button>
-      <button onClick={onExportPng} className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-100 rounded-md text-sm font-medium transition-colors text-gray-700">
-        <ImageIcon size={16} /> Save PNG
+      <button onClick={onExportPng} className="flex items-center gap-2 px-4 py-2 hover:bg-white hover:shadow-sm rounded-full text-sm font-semibold text-gray-700 transition-all border border-transparent hover:border-gray-200/60">
+        <ImageIcon size={16} className="text-emerald-500" /> Save PNG
       </button>
       
-      <div className="w-px h-6 bg-gray-200 mx-1"></div>
-      <button onClick={onClear} className="flex items-center gap-2 px-3 py-1.5 hover:bg-red-50 text-red-600 rounded-md text-sm font-medium transition-colors">
+      <div className="w-px h-5 bg-gray-200/80 mx-1"></div>
+      <button onClick={onClear} className="flex items-center gap-2 px-4 py-2 hover:bg-red-50 hover:shadow-sm text-red-600 rounded-full text-sm font-semibold transition-all border border-transparent hover:border-red-200">
         <Trash2 size={16} /> Clear Chart
       </button>
     </div>

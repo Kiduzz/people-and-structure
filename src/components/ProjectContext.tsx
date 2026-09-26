@@ -15,27 +15,30 @@ const ProjectContext = createContext<ProjectContextType>({ projects: [], setProj
 
 const STORAGE_KEY = 'orgbuilder-projects-v1';
 
-export function ProjectProvider({ children }: { children: ReactNode }) {
+export function ProjectProvider({ children, chartId }: { children: ReactNode, chartId: string }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [mounted, setMounted] = useState(false);
+  const storageKey = `orgbuilder-projects-${chartId}`;
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(storageKey);
     if (stored) {
       try {
         setProjects(JSON.parse(stored));
       } catch (e) {
         console.error('Failed to load projects', e);
       }
+    } else {
+      setProjects([]);
     }
     setMounted(true);
-  }, []);
+  }, [chartId]);
 
   useEffect(() => {
     if (mounted) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+      localStorage.setItem(storageKey, JSON.stringify(projects));
     }
-  }, [projects, mounted]);
+  }, [projects, mounted, storageKey]);
 
   return (
     <ProjectContext.Provider value={{ projects, setProjects }}>

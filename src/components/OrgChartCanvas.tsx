@@ -46,9 +46,8 @@ const defaultEdgeOptions = {
   },
 };
 
-const STORAGE_KEY = 'orgbuilder-v1';
-
-function Flow() {
+function Flow({ chartId }: { chartId: string }) {
+  const storageKey = `orgbuilder-${chartId}`;
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { fitView } = useReactFlow();
@@ -108,7 +107,7 @@ function Flow() {
   );
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(storageKey);
     if (stored) {
       try {
         const { nodes: storedNodes, edges: storedEdges } = JSON.parse(stored);
@@ -143,9 +142,9 @@ function Flow() {
 
   useEffect(() => {
     if (mounted) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes, edges }));
+      localStorage.setItem(storageKey, JSON.stringify({ nodes, edges }));
     }
-  }, [nodes, edges, mounted]);
+  }, [nodes, edges, mounted, storageKey]);
 
   const onConnect = useCallback(
     (params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)),
@@ -181,9 +180,9 @@ function Flow() {
     if (window.confirm('Are you sure you want to clear the entire chart?')) {
       setNodes([]);
       setEdges([]);
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(storageKey);
     }
-  }, [setNodes, setEdges]);
+  }, [setNodes, setEdges, storageKey]);
 
   const onExport = useCallback(() => {
     const elem = document.querySelector('.react-flow') as HTMLElement;
@@ -307,12 +306,12 @@ function Flow() {
   );
 }
 
-export default function OrgChartCanvas() {
+export default function OrgChartCanvas({ chartId }: { chartId: string }) {
   return (
     <div className="w-full h-full font-sans relative">
-      <ProjectProvider>
+      <ProjectProvider chartId={chartId}>
         <ReactFlowProvider>
-          <Flow />
+          <Flow chartId={chartId} />
         </ReactFlowProvider>
       </ProjectProvider>
     </div>
