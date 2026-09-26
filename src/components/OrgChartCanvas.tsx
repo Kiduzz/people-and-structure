@@ -11,11 +11,13 @@ import {
   Node,
   Background,
   Controls,
+  MiniMap,
   ReactFlowProvider,
   useReactFlow,
   Panel,
   useOnSelectionChange,
-  MarkerType
+  MarkerType,
+  BackgroundVariant
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { toPng } from 'html-to-image';
@@ -25,6 +27,8 @@ import Toolbar from './Toolbar';
 import SidePanel from './SidePanel';
 import ProjectsModal from './ProjectsModal';
 import Legend from './Legend';
+import EmptyState from './EmptyState';
+import StatsBar from './StatsBar';
 import { ProjectProvider, useProjects } from './ProjectContext';
 import { getLayoutedElements } from '../lib/layout';
 
@@ -38,11 +42,11 @@ const defaultEdgeOptions = {
     type: MarkerType.ArrowClosed,
     width: 20,
     height: 20,
-    color: '#9ca3af',
+    color: '#94a3b8',
   },
   style: {
     strokeWidth: 2,
-    stroke: '#9ca3af',
+    stroke: '#94a3b8',
   },
 };
 
@@ -54,6 +58,7 @@ function Flow({ chartId }: { chartId: string }) {
   const [mounted, setMounted] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [showProjectsModal, setShowProjectsModal] = useState(false);
+  const [showEmptyState, setShowEmptyState] = useState(false);
   const { projects, setProjects } = useProjects();
 
   useOnSelectionChange({
@@ -96,8 +101,8 @@ function Flow({ chartId }: { chartId: string }) {
         source: parentId,
         target: newNodeId,
         type: 'smoothstep',
-        markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20, color: '#9ca3af' },
-        style: { strokeWidth: 2, stroke: '#9ca3af' },
+        markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20, color: '#94a3b8' },
+        style: { strokeWidth: 2, stroke: '#94a3b8' },
       };
 
       setNodes((nds) => [...nds.map((n) => ({ ...n, selected: false })), newNode]);
@@ -111,34 +116,27 @@ function Flow({ chartId }: { chartId: string }) {
     if (stored) {
       try {
         const { nodes: storedNodes, edges: storedEdges } = JSON.parse(stored);
-        setNodes(storedNodes || []);
-        
-        // Upgrade existing edges to new professional styling
-        const upgradedEdges = (storedEdges || []).map((edge: any) => ({
-          ...edge,
-          type: 'smoothstep',
-          markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20, color: '#9ca3af' },
-          style: { strokeWidth: 2, stroke: '#9ca3af' },
-        }));
-        setEdges(upgradedEdges);
+        if (storedNodes && storedNodes.length > 0) {
+          setNodes(storedNodes || []);
+          const upgradedEdges = (storedEdges || []).map((edge: any) => ({
+            ...edge,
+            type: 'smoothstep',
+            markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20, color: '#94a3b8' },
+            style: { strokeWidth: 2, stroke: '#94a3b8' },
+          }));
+          setEdges(upgradedEdges);
+        } else {
+          setShowEmptyState(true);
+        }
       } catch (e) {
         console.error('Failed to parse stored org chart', e);
+        setShowEmptyState(true);
       }
     } else {
-      const rootNode: Node = {
-        id: 'root-1',
-        type: 'orgNode',
-        position: { x: 0, y: 0 },
-        data: { name: 'New Employee', title: 'Role' },
-      };
-      setNodes([rootNode]);
-      // Small timeout to allow the canvas to measure and fit
-      setTimeout(() => {
-        fitView({ duration: 800, padding: 0.2 });
-      }, 100);
+      setShowEmptyState(true);
     }
     setMounted(true);
-  }, [setNodes, setEdges, fitView]);
+  }, [setNodes, setEdges, storageKey]);
 
   useEffect(() => {
     if (mounted) {
@@ -152,6 +150,7 @@ function Flow({ chartId }: { chartId: string }) {
   );
 
   const onAddNode = useCallback(() => {
+    setShowEmptyState(false);
     const newNode: Node = {
       id: `node-${Date.now()}`,
       type: 'orgNode',
@@ -160,6 +159,30 @@ function Flow({ chartId }: { chartId: string }) {
     };
     setNodes((nds) => [...nds, newNode]);
   }, [setNodes]);
+
+  const onStartBlank = useCallback(() => {
+    setShowEmptyState(false);
+    const rootNode: Node = {
+      id: `node-${Date.now()}`,
+      type: 'orgNode',
+      position: { x: 0, y: 0 },
+      data: { name: 'Team Lead', title: 'Role' },
+    };
+    setNodes([rootNode]);
+    setTimeout(() => fitView({ duration: 800, padding: 0.3 }), 100);
+  }, [setNodes, fitView]);
+
+  const onSelectTemplate = useCallback((templateNodes: Node[], templateEdges: Edge[]) => {
+    setShowEmptyState(false);
+    setNodes(templateNodes);
+    setEdges(templateEdges);
+    setTimeout(() => {
+      const { nodes: layouted, edges: layoutedEdges } = getLayoutedElements(templateNodes, templateEdges, 'TB');
+      setNodes([...layouted]);
+      setEdges([...layoutedEdges]);
+      setTimeout(() => fitView({ duration: 800, padding: 0.2 }), 50);
+    }, 50);
+  }, [setNodes, setEdges, fitView]);
 
   const onAutoLayout = useCallback(() => {
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
@@ -181,6 +204,7 @@ function Flow({ chartId }: { chartId: string }) {
       setNodes([]);
       setEdges([]);
       localStorage.removeItem(storageKey);
+      setShowEmptyState(true);
     }
   }, [setNodes, setEdges, storageKey]);
 
@@ -188,11 +212,12 @@ function Flow({ chartId }: { chartId: string }) {
     const elem = document.querySelector('.react-flow') as HTMLElement;
     if (elem) {
       toPng(elem, {
-        backgroundColor: '#f9fafb',
+        backgroundColor: '#f8fafc',
         filter: (node) => {
           if (
             node?.classList?.contains('react-flow__controls') ||
-            node?.classList?.contains('react-flow__panel')
+            node?.classList?.contains('react-flow__panel') ||
+            node?.classList?.contains('react-flow__minimap')
           ) {
             return false;
           }
@@ -230,13 +255,14 @@ function Flow({ chartId }: { chartId: string }) {
         const content = event.target?.result as string;
         const parsed = JSON.parse(content);
         if (parsed.nodes && parsed.edges) {
+          setShowEmptyState(false);
           setNodes(parsed.nodes);
           
           const upgradedEdges = parsed.edges.map((edge: any) => ({
             ...edge,
             type: 'smoothstep',
-            markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20, color: '#9ca3af' },
-            style: { strokeWidth: 2, stroke: '#9ca3af' },
+            markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20, color: '#94a3b8' },
+            style: { strokeWidth: 2, stroke: '#94a3b8' },
           }));
           setEdges(upgradedEdges);
 
@@ -261,10 +287,19 @@ function Flow({ chartId }: { chartId: string }) {
     }
   }, [onAddNode]);
 
-  if (!mounted) return <div className="w-full h-screen bg-gray-50 flex items-center justify-center">Loading canvas...</div>;
+  if (!mounted) {
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-slate-50 to-blue-50/30 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 animate-pulse">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 shadow-lg"></div>
+          <span className="text-sm font-medium text-gray-400">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full h-full" onDoubleClick={onDoubleClick}>
+    <div className="w-full h-full relative" onDoubleClick={onDoubleClick}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -273,13 +308,21 @@ function Flow({ chartId }: { chartId: string }) {
         onConnect={onConnect}
         nodeTypes={nodeTypes}
         deleteKeyCode={['Backspace', 'Delete']}
-        className="bg-gray-50"
+        className="bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/20"
         fitView
         connectionRadius={40}
         defaultEdgeOptions={defaultEdgeOptions}
+        minZoom={0.1}
+        maxZoom={2}
       >
-        <Background color="#ccc" gap={16} />
-        <Controls />
+        <Background variant={BackgroundVariant.Dots} color="#cbd5e1" gap={24} size={1.5} />
+        <Controls showInteractive={false} />
+        <MiniMap 
+          nodeStrokeWidth={3}
+          zoomable
+          pannable
+          style={{ width: 140, height: 100 }}
+        />
         <Panel position="top-center">
           <Toolbar
             onAddNode={onAddNode}
@@ -292,6 +335,8 @@ function Flow({ chartId }: { chartId: string }) {
           />
         </Panel>
       </ReactFlow>
+
+      {/* Side Panel */}
       <SidePanel
         selectedNodeId={selectedNodeId}
         onClose={() => onSelectNode('')}
@@ -300,7 +345,19 @@ function Flow({ chartId }: { chartId: string }) {
         nodes={nodes as any}
         edges={edges}
       />
+
+      {/* Legend */}
       <Legend />
+
+      {/* Stats and Search */}
+      <StatsBar nodes={nodes} edges={edges} onSelectNode={onSelectNode} />
+
+      {/* Empty State with Templates */}
+      {showEmptyState && (
+        <EmptyState onStartBlank={onStartBlank} onSelectTemplate={onSelectTemplate} />
+      )}
+
+      {/* Projects Modal */}
       {showProjectsModal && <ProjectsModal onClose={() => setShowProjectsModal(false)} />}
     </div>
   );

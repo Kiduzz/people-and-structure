@@ -9,21 +9,21 @@ export default function Legend() {
   if (projects.length === 0) return null;
 
   return (
-    <div className="absolute bottom-6 right-6 bg-white rounded-lg shadow-lg border border-gray-200 z-10 w-48 overflow-hidden pointer-events-auto transition-all">
+    <div className="absolute top-20 right-6 bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200/60 z-10 w-48 overflow-hidden pointer-events-auto transition-all animate-slide-in-right">
       <div 
-        className="px-3 py-2 bg-gray-50 border-b border-gray-100 flex items-center justify-between cursor-pointer hover:bg-gray-100 transition-colors"
+        className="px-4 py-2.5 border-b border-gray-200/40 flex items-center justify-between cursor-pointer hover:bg-gray-50/50 transition-colors"
         onClick={() => setIsCollapsed(!isCollapsed)}
       >
-        <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Projects Legend</span>
-        {isCollapsed ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
+        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Projects</span>
+        {isCollapsed ? <ChevronDown size={14} className="text-gray-400" /> : <ChevronUp size={14} className="text-gray-400" />}
       </div>
       
       {!isCollapsed && (
-        <div className="p-2 max-h-48 overflow-y-auto flex flex-col gap-1">
+        <div className="p-2 max-h-48 overflow-y-auto flex flex-col gap-0.5">
           {projects.map(proj => (
-            <div key={proj.id} className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-50 rounded-md transition-colors">
-              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: proj.color }}></div>
-              <span className="text-xs text-gray-700 truncate font-medium">{proj.name}</span>
+            <div key={proj.id} className="flex items-center gap-2.5 px-2.5 py-2 hover:bg-gray-50/50 rounded-xl transition-colors">
+              <div className="w-3 h-3 rounded-full flex-shrink-0 shadow-sm" style={{ backgroundColor: proj.color }}></div>
+              <span className="text-xs text-gray-700 truncate font-semibold">{proj.name}</span>
             </div>
           ))}
         </div>
