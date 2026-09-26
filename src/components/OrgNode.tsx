@@ -3,6 +3,9 @@ import { Handle, Position, NodeProps, useReactFlow, Node } from '@xyflow/react';
 export type OrgNodeData = {
   name: string;
   title: string;
+  email?: string;
+  phone?: string;
+  notes?: string;
 };
 
 export type OrgNodeType = Node<OrgNodeData, 'orgNode'>;

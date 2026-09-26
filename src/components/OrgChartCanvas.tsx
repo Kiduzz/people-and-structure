@@ -13,13 +13,15 @@ import {
   Controls,
   ReactFlowProvider,
   useReactFlow,
-  Panel
+  Panel,
+  useOnSelectionChange
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { toPng } from 'html-to-image';
 
 import OrgNode from './OrgNode';
 import Toolbar from './Toolbar';
+import SidePanel from './SidePanel';
 import { getLayoutedElements } from '../lib/layout';
 
 const nodeTypes = {
@@ -33,6 +35,54 @@ function Flow() {
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { fitView } = useReactFlow();
   const [mounted, setMounted] = useState(false);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  useOnSelectionChange({
+    onChange: ({ nodes }) => {
+      if (nodes.length === 1) {
+        setSelectedNodeId(nodes[0].id);
+      } else {
+        setSelectedNodeId(null);
+      }
+    },
+  });
+
+  const onSelectNode = useCallback(
+    (id: string) => {
+      setNodes((nds) =>
+        nds.map((n) => ({
+          ...n,
+          selected: n.id === id,
+        }))
+      );
+    },
+    [setNodes]
+  );
+
+  const onAddSubordinate = useCallback(
+    (parentId: string) => {
+      const parentNode = nodes.find((n) => n.id === parentId);
+      if (!parentNode) return;
+
+      const newNodeId = `node-${Date.now()}`;
+      const newNode: Node = {
+        id: newNodeId,
+        type: 'orgNode',
+        position: { x: parentNode.position.x, y: parentNode.position.y + 150 },
+        data: { name: 'New Employee', title: 'Role' },
+        selected: true,
+      };
+      const newEdge: Edge = {
+        id: `edge-${parentId}-${newNodeId}`,
+        source: parentId,
+        target: newNodeId,
+      };
+
+      setNodes((nds) => [...nds.map((n) => ({ ...n, selected: false })), newNode]);
+      setEdges((eds) => [...eds, newEdge]);
+    },
+    [nodes, setNodes, setEdges]
+  );
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -161,6 +211,12 @@ function Flow() {
           />
         </Panel>
       </ReactFlow>
+      <SidePanel
+        selectedNodeId={selectedNodeId}
+        onClose={() => onSelectNode('')}
+        onSelectNode={onSelectNode}
+        onAddSubordinate={onAddSubordinate}
+      />
     </div>
   );
 }
