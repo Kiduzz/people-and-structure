@@ -8,16 +8,15 @@ interface SidePanelProps {
   onClose: () => void;
   onSelectNode: (id: string) => void;
   onAddSubordinate: (parentId: string) => void;
+  nodes: OrgNodeType[];
+  edges: any[];
 }
 
-export default function SidePanel({ selectedNodeId, onClose, onSelectNode, onAddSubordinate }: SidePanelProps) {
-  const { getNodes, getEdges, setNodes } = useReactFlow();
+export default function SidePanel({ selectedNodeId, onClose, onSelectNode, onAddSubordinate, nodes, edges }: SidePanelProps) {
+  const { setNodes } = useReactFlow();
   const { projects } = useProjects();
 
   if (!selectedNodeId) return null;
-
-  const nodes = getNodes() as OrgNodeType[];
-  const edges = getEdges();
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
   if (!selectedNode) return null;

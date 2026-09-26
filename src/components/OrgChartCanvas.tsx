@@ -203,6 +203,7 @@ function Flow() {
         deleteKeyCode={['Backspace', 'Delete']}
         className="bg-gray-50"
         fitView
+        connectionRadius={40}
       >
         <Background color="#ccc" gap={16} />
         <Controls />
@@ -221,6 +222,8 @@ function Flow() {
         onClose={() => onSelectNode('')}
         onSelectNode={onSelectNode}
         onAddSubordinate={onAddSubordinate}
+        nodes={nodes as any}
+        edges={edges}
       />
       <Legend />
       {showProjectsModal && <ProjectsModal onClose={() => setShowProjectsModal(false)} />}
