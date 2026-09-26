@@ -1,4 +1,4 @@
-import OrgChartCanvas from '../components/OrgChartCanvas';
+import AppTabs from '../components/AppTabs';
 
 export const metadata = {
   title: 'OrgBuilder - Visual Org Chart',
@@ -6,9 +6,5 @@ export const metadata = {
 };
 
 export default function Home() {
-  return (
-    <main className="w-screen h-screen overflow-hidden">
-      <OrgChartCanvas />
-    </main>
-  );
+  return <AppTabs />;
 }

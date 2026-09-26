@@ -309,7 +309,7 @@ function Flow() {
 
 export default function OrgChartCanvas() {
   return (
-    <div className="w-full h-screen font-sans">
+    <div className="w-full h-full font-sans relative">
       <ProjectProvider>
         <ReactFlowProvider>
           <Flow />
