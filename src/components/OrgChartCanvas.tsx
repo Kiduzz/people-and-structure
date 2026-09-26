@@ -1,0 +1,169 @@
+"use client";
+
+import { useCallback, useEffect, useState } from 'react';
+import {
+  ReactFlow,
+  useNodesState,
+  useEdgesState,
+  addEdge,
+  Connection,
+  Edge,
+  Node,
+  Background,
+  Controls,
+  ReactFlowProvider,
+  useReactFlow,
+  Panel
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import { toPng } from 'html-to-image';
+
+import OrgNode from './OrgNode';
+import Toolbar from './Toolbar';
+import { getLayoutedElements } from '../lib/layout';
+
+const nodeTypes = {
+  orgNode: OrgNode,
+};
+
+const STORAGE_KEY = 'orgbuilder-v1';
+
+function Flow() {
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const { fitView } = useReactFlow();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        const { nodes: storedNodes, edges: storedEdges } = JSON.parse(stored);
+        setNodes(storedNodes || []);
+        setEdges(storedEdges || []);
+      } catch (e) {
+        console.error('Failed to parse stored org chart', e);
+      }
+    } else {
+      const rootNode: Node = {
+        id: 'root-1',
+        type: 'orgNode',
+        position: { x: 0, y: 0 },
+        data: { name: 'New Employee', title: 'Role' },
+      };
+      setNodes([rootNode]);
+      // Small timeout to allow the canvas to measure and fit
+      setTimeout(() => {
+        fitView({ duration: 800, padding: 0.2 });
+      }, 100);
+    }
+    setMounted(true);
+  }, [setNodes, setEdges, fitView]);
+
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes, edges }));
+    }
+  }, [nodes, edges, mounted]);
+
+  const onConnect = useCallback(
+    (params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges]
+  );
+
+  const onAddNode = useCallback(() => {
+    const newNode: Node = {
+      id: `node-${Date.now()}`,
+      type: 'orgNode',
+      position: { x: (Math.random() - 0.5) * 400, y: (Math.random() - 0.5) * 400 },
+      data: { name: 'New Employee', title: 'Role' },
+    };
+    setNodes((nds) => [...nds, newNode]);
+  }, [setNodes]);
+
+  const onAutoLayout = useCallback(() => {
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+      nodes,
+      edges,
+      'TB'
+    );
+
+    setNodes([...layoutedNodes]);
+    setEdges([...layoutedEdges]);
+
+    window.requestAnimationFrame(() => {
+      fitView({ duration: 800, padding: 0.2 });
+    });
+  }, [nodes, edges, setNodes, setEdges, fitView]);
+
+  const onClear = useCallback(() => {
+    if (window.confirm('Are you sure you want to clear the entire chart?')) {
+      setNodes([]);
+      setEdges([]);
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }, [setNodes, setEdges]);
+
+  const onExport = useCallback(() => {
+    const elem = document.querySelector('.react-flow') as HTMLElement;
+    if (elem) {
+      toPng(elem, {
+        backgroundColor: '#f9fafb',
+        filter: (node) => {
+          if (
+            node?.classList?.contains('react-flow__controls') ||
+            node?.classList?.contains('react-flow__panel')
+          ) {
+            return false;
+          }
+          return true;
+        },
+      }).then((dataUrl) => {
+        const a = document.createElement('a');
+        a.setAttribute('download', 'org-chart.png');
+        a.setAttribute('href', dataUrl);
+        a.click();
+      }).catch(err => {
+        console.error('Failed to export image', err);
+      });
+    }
+  }, []);
+
+  if (!mounted) return <div className="w-full h-screen bg-gray-50 flex items-center justify-center">Loading canvas...</div>;
+
+  return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onConnect={onConnect}
+      nodeTypes={nodeTypes}
+      onPaneDoubleClick={onAddNode}
+      deleteKeyCode={['Backspace', 'Delete']}
+      className="bg-gray-50"
+      fitView
+    >
+      <Background color="#ccc" gap={16} />
+      <Controls />
+      <Panel position="top-center">
+        <Toolbar
+          onAddNode={onAddNode}
+          onAutoLayout={onAutoLayout}
+          onExport={onExport}
+          onClear={onClear}
+        />
+      </Panel>
+    </ReactFlow>
+  );
+}
+
+export default function OrgChartCanvas() {
+  return (
+    <div className="w-full h-screen font-sans">
+      <ReactFlowProvider>
+        <Flow />
+      </ReactFlowProvider>
+    </div>
+  );
+}
