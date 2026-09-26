@@ -1,11 +1,13 @@
-import { Handle, Position, NodeProps, useReactFlow } from '@xyflow/react';
+import { Handle, Position, NodeProps, useReactFlow, Node } from '@xyflow/react';
 
 export type OrgNodeData = {
   name: string;
   title: string;
 };
 
-export default function OrgNode({ id, data, selected }: NodeProps<OrgNodeData>) {
+export type OrgNodeType = Node<OrgNodeData, 'orgNode'>;
+
+export default function OrgNode({ id, data, selected }: NodeProps<OrgNodeType>) {
   const { setNodes, setEdges } = useReactFlow();
 
   const onChangeName = (e: React.ChangeEvent<HTMLInputElement>) => {

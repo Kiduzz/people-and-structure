@@ -129,32 +129,39 @@ function Flow() {
     }
   }, []);
 
+  const onDoubleClick = useCallback((e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).classList.contains('react-flow__pane')) {
+      onAddNode();
+    }
+  }, [onAddNode]);
+
   if (!mounted) return <div className="w-full h-screen bg-gray-50 flex items-center justify-center">Loading canvas...</div>;
 
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      onConnect={onConnect}
-      nodeTypes={nodeTypes}
-      onPaneDoubleClick={onAddNode}
-      deleteKeyCode={['Backspace', 'Delete']}
-      className="bg-gray-50"
-      fitView
-    >
-      <Background color="#ccc" gap={16} />
-      <Controls />
-      <Panel position="top-center">
-        <Toolbar
-          onAddNode={onAddNode}
-          onAutoLayout={onAutoLayout}
-          onExport={onExport}
-          onClear={onClear}
-        />
-      </Panel>
-    </ReactFlow>
+    <div className="w-full h-full" onDoubleClick={onDoubleClick}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        nodeTypes={nodeTypes}
+        deleteKeyCode={['Backspace', 'Delete']}
+        className="bg-gray-50"
+        fitView
+      >
+        <Background color="#ccc" gap={16} />
+        <Controls />
+        <Panel position="top-center">
+          <Toolbar
+            onAddNode={onAddNode}
+            onAutoLayout={onAutoLayout}
+            onExport={onExport}
+            onClear={onClear}
+          />
+        </Panel>
+      </ReactFlow>
+    </div>
   );
 }
 
