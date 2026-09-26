@@ -14,7 +14,8 @@ import {
   ReactFlowProvider,
   useReactFlow,
   Panel,
-  useOnSelectionChange
+  useOnSelectionChange,
+  MarkerType
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { toPng } from 'html-to-image';
@@ -24,11 +25,25 @@ import Toolbar from './Toolbar';
 import SidePanel from './SidePanel';
 import ProjectsModal from './ProjectsModal';
 import Legend from './Legend';
-import { ProjectProvider } from './ProjectContext';
+import { ProjectProvider, useProjects } from './ProjectContext';
 import { getLayoutedElements } from '../lib/layout';
 
 const nodeTypes = {
   orgNode: OrgNode,
+};
+
+const defaultEdgeOptions = {
+  type: 'smoothstep',
+  markerEnd: {
+    type: MarkerType.ArrowClosed,
+    width: 20,
+    height: 20,
+    color: '#9ca3af',
+  },
+  style: {
+    strokeWidth: 2,
+    stroke: '#9ca3af',
+  },
 };
 
 const STORAGE_KEY = 'orgbuilder-v1';
@@ -40,6 +55,7 @@ function Flow() {
   const [mounted, setMounted] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [showProjectsModal, setShowProjectsModal] = useState(false);
+  const { projects, setProjects } = useProjects();
 
   useOnSelectionChange({
     onChange: ({ nodes }) => {
@@ -80,6 +96,9 @@ function Flow() {
         id: `edge-${parentId}-${newNodeId}`,
         source: parentId,
         target: newNodeId,
+        type: 'smoothstep',
+        markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20, color: '#9ca3af' },
+        style: { strokeWidth: 2, stroke: '#9ca3af' },
       };
 
       setNodes((nds) => [...nds.map((n) => ({ ...n, selected: false })), newNode]);
@@ -94,7 +113,15 @@ function Flow() {
       try {
         const { nodes: storedNodes, edges: storedEdges } = JSON.parse(stored);
         setNodes(storedNodes || []);
-        setEdges(storedEdges || []);
+        
+        // Upgrade existing edges to new professional styling
+        const upgradedEdges = (storedEdges || []).map((edge: any) => ({
+          ...edge,
+          type: 'smoothstep',
+          markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20, color: '#9ca3af' },
+          style: { strokeWidth: 2, stroke: '#9ca3af' },
+        }));
+        setEdges(upgradedEdges);
       } catch (e) {
         console.error('Failed to parse stored org chart', e);
       }
@@ -183,6 +210,52 @@ function Flow() {
     }
   }, []);
 
+  const onExportData = useCallback(() => {
+    const data = JSON.stringify({ nodes, edges, projects }, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'orgbuilder-data.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [nodes, edges, projects]);
+
+  const onImportData = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const content = event.target?.result as string;
+        const parsed = JSON.parse(content);
+        if (parsed.nodes && parsed.edges) {
+          setNodes(parsed.nodes);
+          
+          const upgradedEdges = parsed.edges.map((edge: any) => ({
+            ...edge,
+            type: 'smoothstep',
+            markerEnd: { type: MarkerType.ArrowClosed, width: 20, height: 20, color: '#9ca3af' },
+            style: { strokeWidth: 2, stroke: '#9ca3af' },
+          }));
+          setEdges(upgradedEdges);
+
+          if (parsed.projects) {
+            setProjects(parsed.projects);
+          }
+          setTimeout(() => fitView({ duration: 800, padding: 0.2 }), 100);
+        } else {
+          alert('Invalid JSON file format. Must contain nodes and edges.');
+        }
+      } catch (err) {
+        alert('Failed to parse JSON file.');
+      }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  }, [setNodes, setEdges, setProjects, fitView]);
+
   const onDoubleClick = useCallback((e: React.MouseEvent) => {
     if ((e.target as HTMLElement).classList.contains('react-flow__pane')) {
       onAddNode();
@@ -204,6 +277,7 @@ function Flow() {
         className="bg-gray-50"
         fitView
         connectionRadius={40}
+        defaultEdgeOptions={defaultEdgeOptions}
       >
         <Background color="#ccc" gap={16} />
         <Controls />
@@ -211,7 +285,9 @@ function Flow() {
           <Toolbar
             onAddNode={onAddNode}
             onAutoLayout={onAutoLayout}
-            onExport={onExport}
+            onExportPng={onExport}
+            onExportData={onExportData}
+            onImportData={onImportData}
             onClear={onClear}
             onManageProjects={() => setShowProjectsModal(true)}
           />
